@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Settings</title>
+	<style type="text/css">
+	html,body
+	{
+		padding: 0;
+		marging: 0;
+		color: white;
+		background: #202123;
+		text-align: center;
+		font-family: monospace;
+	}
+	.flex
+	{
+		display:flex;
+		justify-content: center;
+	}
+	.field
+	{
+		font-size: 1.2rem;
+		height: 30px;
+		padding: 5px;
+	}
+	.tRight
+	{
+		text-align: right;
+	}
+	</style>
+</head>
+<body>
+	<h1>Settings</h1>
+	<div class="flex">
+		<div>
+			<div class="field tRight">Speed:</div>
+			<div class="field tRight">Language:</div>
+			<div class="field tRight" style="display:none">Debug:</div>
+		</div>
+		<div>
+			<div class="field"><input name="speed" type="number" value="1.1" step="0.1"></div>
+			<div class="field">
+				<select name="lang">
+					<option value="de-DE">de-DE</option>
+					<option value="en-US">en-US</option>
+					<option value="en-GB">en-GB</option>
+					<option value="en-GB">en-GB</option>
+					<option value="es-ES">es-ES</option>
+					<option value="es-US">es-US</option>
+					<option value="fr-FR">fr-FR</option>
+					<option value="hi-IN">hi-IN</option>
+					<option value="id-ID">id-ID</option>
+					<option value="it-IT">it-IT</option>
+					<option value="ja-JP">ja-JP</option>
+					<option value="ko-KR">ko-KR</option>
+					<option value="nl-NL">nl-NL</option>
+					<option value="pl-PL">pl-PL</option>
+					<option value="pt-BR">pt-BR</option>
+					<option value="ru-RU">ru-RU</option>
+					<option value="zh-CN">zh-CN</option>
+					<option value="zh-HK">zh-HK</option>
+					<option value="zh-TW">zh-TW</option>
+				</select>
+			</div>
+			<div class="field" style="display:none"><input name="debug" type="checkbox"></div>
+		</div>
+	</div>
+	<script src="settings.js"></script>
+</body>
+</html>
