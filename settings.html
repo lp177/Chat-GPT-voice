@@ -7,8 +7,10 @@
 	html,body
 	{
 		padding: 0;
-		marging: 0;
+		margin: 0;
 		color: white;
+		min-width: 360px;
+		min-height: 220px;
 		background: #202123;
 		text-align: center;
 		font-family: monospace;
@@ -36,7 +38,9 @@
 		<div>
 			<div class="field tRight">Speed:</div>
 			<div class="field tRight">Language:</div>
-			<div class="field tRight" style="display:none">Debug:</div>
+			<!-- <div class="field tRight" style="display:none">Debug:</div> -->
+			<div class="field tRight">Auto read:</div>
+			<div class="field tRight">Debug:</div>
 		</div>
 		<div>
 			<div class="field"><input name="speed" type="number" value="1.1" step="0.1"></div>
@@ -63,7 +67,9 @@
 					<option value="zh-TW">zh-TW</option>
 				</select>
 			</div>
-			<div class="field" style="display:none"><input name="debug" type="checkbox"></div>
+			<div class="field"><input name="autoread" type="checkbox"></div>
+			<!-- <div class="field" style="display:none"><input name="debug" type="checkbox"></div> -->
+			<div class="field"><input name="debug" type="checkbox"></div>
 		</div>
 	</div>
 	<script src="settings.js"></script>

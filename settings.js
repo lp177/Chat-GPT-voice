@@ -1,5 +1,6 @@
 'use strict';
-const q=document.querySelector.bind(document),qa=document.querySelectorAll.bind(document),c=console,debug=false;
+const q=document.querySelector.bind(document),qa=document.querySelectorAll.bind(document),c=console;
+var debug=false;
 if (typeof browser==='undefined')
     var browser=chrome;
 function listenInputChanges(names)
@@ -23,7 +24,9 @@ function listenInputChanges(names)
 function getSettings(msg)
 {
     delete msg['query'];
-    c.info('Received settings: ', msg);
+    debug=msg['debug'];
+    if(debug)
+        c.info('Received settings: ', msg);
     var name,value;
     for([name,value] of Object.entries(msg))
     {
@@ -40,7 +43,7 @@ function getSettings(msg)
         else
             c.error('Fail to find input with name = ', name);
     }
-    listenInputChanges(['speed','lang','debug']);
+    listenInputChanges(['speed','lang','autoread','debug']);
 }
 // Receive and set saved values
 browser.runtime.onMessage.addListener(function(msg,sender,sendResponse)
