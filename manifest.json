@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
     "name": "Chat GPT voice",
-    "version": "3.001.1004",
+    "version": "3.001.1005",
     "description": "Make chatGPT speech with human voice",
     "options_page": "settings.html",
     "permissions": [
-        "storage","tabs","activeTab","tts","webRequest"
+        "storage","tabs","activeTab","tts"
     ],
     "action": {
         "default_popup": "settings.html",
@@ -34,6 +34,5 @@
                 "integrations/chat.openai.js"
             ]
         }
-    ],
-    "host_permissions": [ "*://*.openai.com/*" ]
+    ]
 }
