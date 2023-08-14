@@ -1,11 +1,11 @@
 {
     "manifest_version": 3,
     "name": "Chat GPT voice",
-    "version": "3.001.1025",
+    "version": "3.001.1026",
     "description": "Make chatGPT speech with human voice",
     "options_page": "settings.html",
     "permissions": [
-        "storage","tabs","activeTab","tts"
+        "storage","tabs","tts"
     ],
     "action": {
         "default_popup": "settings.html",
