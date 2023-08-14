@@ -152,7 +152,6 @@ function listenUser(e)
             c.info('recognition.end');
         q('#sttInjected').classList.remove('activeBtExtAnimation')
         recognition.stop();
-        console.info('recognition end');
         is_recognition_running = false;
         setTimeout(()=>q(
                 'svg path[d="M.5 1.163A1 1 0 0 1 1.97.28l12.868 6.837a1 1 0 0 1 0 1.766L1.969 15.72A1 1 0 0 1 .5 14.836V10.33a1 1 0 0 1 .816-.983L8.5 8 1.316 6.653A1 1 0 0 1 .5 5.67V1.163Z"]'
@@ -161,7 +160,6 @@ function listenUser(e)
         );
     };
     recognition.onnomatch = (event) => {
-        console.info('recognition fail');
         if(settings['debug'])
             c.info('recognition.fail:', event);
         recognition.stop();
@@ -295,13 +293,13 @@ function toggleGlobalControl(delegate=false,force_state=null)
 {
     const globalControls=q('#ttsGlobalControls');
     if(!globalControls)
-        return console.error('#ttsGlobalControls');
+        return debug?c.error('Fail to find #ttsGlobalControls'):undefined;
     const hidden=globalControls.querySelector('.hide');
     if(force_state!='stop'&&(hidden.getAttribute('alt')==='stop'||force_state=='play'))
     {
         var page=q('main');
         if(!page)
-            return console.error('Fail to get page content');
+            return debug?c.error('Fail to get page content'):undefined;
         q('#ttsGlobalControls svg[alt="stop"]').classList.remove('hide');
         q('#ttsGlobalControls svg[alt="play"]').classList.add('hide');
         globalControls.setAttribute('title', 'Stop');
