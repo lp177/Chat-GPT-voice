@@ -32,6 +32,9 @@
             ],
             "js": [
                 "integrations/chat.openai.js"
+            ],
+            "css":[
+                "integrations/chat.openai.css"
             ]
         }
     ]

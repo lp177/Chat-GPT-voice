@@ -12,6 +12,7 @@ timers={
     'insertSTTButtonTimer': null,
     'insertTTSButtonsTimer': null,
     'searchForNewResponseTimer': null,
+    'insertGlobalStopButtonTimer': null,
 },
 settings={
     'debug':false,
@@ -56,7 +57,7 @@ function swapToStop()
     if(settings['debug'])
         c.log('Swap ', lastPlayElement, ' to stop');
 }
-function swapToPlay()
+function swapToPlay(triggerByGlogalControls=false)
 {
     for(let player of qa('.ttsInjected svg[title="stop"]'))
         player.parentNode.innerHTML = `<svg
@@ -77,6 +78,8 @@ function swapToPlay()
     if(settings['debug'])
         c.log('Swap ', lastPlayElement, ' to play');
     lastPlayElement=null;
+    if(!triggerByGlogalControls)
+        toggleGlobalControl(true,'stop')
 }
 function play(e,UISection)
 {
@@ -95,6 +98,7 @@ function play(e,UISection)
         query:'readForMe',
         text:textElement.innerText
     });
+    toggleGlobalControl(true,'play');
 }
 function playEnqueue(msg)
 {
@@ -103,14 +107,13 @@ function playEnqueue(msg)
         text:msg,
         enqueue:true
     });
+    toggleGlobalControl(true,'play');
 }
 function togglePlay(e,UISection)
 {
     if(UISection.querySelector('svg[title="stop"]'))
     {
-        browser.runtime.sendMessage({
-            query:'stop'
-        });
+        browser.runtime.sendMessage({query:'stop'});
         swapToPlay();
     }
     else
@@ -206,11 +209,11 @@ function insertTTSButtons(retried=0)
                 </svg>
             </button>`
         );
-        if(settings['autoread']&&UISection.querySelector('.ttsInjected').parentNode.parentNode.parentNode.querySelector('.ttsInReading'))
-        {
-            lastPlayElement=UISection.querySelector('.ttsInjected');
-            swapToStop();
-        }
+        // if(settings['autoread']&&UISection.querySelector('.ttsInjected').parentNode.parentNode.parentNode.querySelector('.ttsInReading'))
+        // {
+        //     lastPlayElement=UISection.querySelector('.ttsInjected');
+        //     swapToStop();
+        // }
         UISection.querySelector('.ttsInjected').addEventListener(
             'click',
             ((UISection)=>(e)=>togglePlay(e,UISection))(UISection)
@@ -221,6 +224,84 @@ function insertTTSButtons(retried=0)
             timers['insertTTSButtonsTimer']=null;
             insertTTSButtons(retried+1);
         }, 100);
+}
+function insertGlobalStopButton(retried=0)
+{
+    avoidConcurrency(retried,'insertGlobalStopButtonTimer');
+    if(q('#ttsGlobalControls'))
+    {
+        if(retried<10)
+            timers['insertGlobalStopButtonTimer']=setTimeout(()=>{
+                timers['insertGlobalStopButtonTimer']=null;
+                insertGlobalStopButton(retried+1)
+            },300);
+        return;
+    }
+    q('main').insertAdjacentHTML(
+        'beforeBegin',
+        `<div id="ttsGlobalControls" title="Read all of this page">
+            <svg
+                alt="stop"
+                stroke="white"
+                fill="white"
+                stroke-width="1"
+                viewBox="0 0 28 28"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="h-4 w-4 hide"
+                height="1em"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <rect x="4" y="4" width="28" height="28"/>
+            </svg>
+            <svg
+                alt="play"
+                stroke="white"
+                fill="white"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="h-4 w-4"
+                height="1em"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <polygon points="10,4 10,24 22,14"/>
+            </svg>
+        </div>`
+    );
+    q('#ttsGlobalControls').addEventListener('click', ()=>toggleGlobalControl(false));
+}
+function toggleGlobalControl(delegate=false,force_state=null)
+{
+    const globalControls=q('#ttsGlobalControls');
+    if(!globalControls)
+        return console.error('#ttsGlobalControls');
+    const hidden=globalControls.querySelector('.hide');
+    if(force_state!='stop'&&(hidden.getAttribute('alt')==='stop'||force_state=='play'))
+    {
+        var page=q('main');
+        if(!page)
+            return console.error('Fail to get page content');
+        q('#ttsGlobalControls svg[alt="stop"]').classList.remove('hide');
+        q('#ttsGlobalControls svg[alt="play"]').classList.add('hide');
+        globalControls.setAttribute('title', 'Stop');
+        if(delegate) // Triger by invidual button
+            return;
+        swapToPlay(true); // Reset all individuals buttons, use only global control in this case
+        browser.runtime.sendMessage({
+            query:'readForMe',
+            text:page.innerText
+        });
+        return;
+    }
+    globalControls.setAttribute('title', 'Read all of this page');
+    q('#ttsGlobalControls svg[alt="play"]').classList.remove('hide');
+    q('#ttsGlobalControls svg[alt="stop"]').classList.add('hide');
+    if(!delegate)
+        browser.runtime.sendMessage({query:'stop'});
 }
 function insertSTTButton(retried=0)
 {
@@ -340,6 +421,7 @@ function readLiveResponse(wrapper)
 }
 insertSTTButton();
 insertTTSButtons();
+insertGlobalStopButton();
 const sendQuestionButton=q('form svg path[d="M.5 1.163A1 1 0 0 1 1.97.28l12.868 6.837a1 1 0 0 1 0 1.766L1.969 15.72A1 1 0 0 1 .5 14.836V10.33a1 1 0 0 1 .816-.983L8.5 8 1.316 6.653A1 1 0 0 1 .5 5.67V1.163Z"]');
 q('body').addEventListener(
     'click',
@@ -347,6 +429,7 @@ q('body').addEventListener(
         insertTTSButtons();
         insertSTTButton();
         searchForNewResponse();
+        insertGlobalStopButton();
     },100)
 );
 q('body').addEventListener(

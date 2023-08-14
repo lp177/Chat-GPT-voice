@@ -118,7 +118,7 @@ browser.runtime.onMessage.addListener((request,sender,sendResponse)=>{
     else if(request.query==='stop')
     {
         browser.tts.stop();
-        browser.tabs.sendMessage(tab_id, {action: 'swapToPlay'});
+        browser.tabs.sendMessage(sender.tab.id, {action: 'swapToPlay'});
     }
     else
         console.info('Unmanaged query receive in sw: ', request.query);

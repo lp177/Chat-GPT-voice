@@ -1,0 +1,32 @@
+#ttsGlobalControls
+{
+    cursor: pointer;
+    position:absolute;
+    right:15%;
+    border-radius:50%;
+    background:#40414f;
+    z-index:999999;
+    top:50%;
+    padding:10px;
+    box-shadow: 0 0 5px rgba(255,255,255,0.2);
+}
+#ttsGlobalControls:hover
+{
+    background:#353641;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+#ttsGlobalControls svg
+{
+    margin: -1px 1px 1px -1px;
+}
+#ttsGlobalControls .hide
+{
+    display: none;
+}
+@media (max-width: 1700px)
+{
+    #ttsGlobalControls
+    {
+        right:50px;
+    }
+}
