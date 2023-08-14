@@ -9,6 +9,7 @@ promptSubmit,
 readLiveResponseBuffer='',
 timerSearchPromptSubmit,
 timers={
+    'readLiveResponseTimer': null,
     'insertSTTButtonTimer': null,
     'insertTTSButtonsTimer': null,
     'searchForNewResponseTimer': null,
@@ -119,16 +120,29 @@ function togglePlay(e,UISection)
     else
         play(e,UISection);
 }
-function listenUser()
+function listenUser(e)
 {
+    e.preventDefault();
     if(is_recognition_running)
-        return;
+        return settings['debug']?c.warn('speech recognition already running'):undefined;
+    if(q('#sttInjected'))
+        q('#sttInjected').classList.add('activeBtExtAnimation');
+    var waitListenEnd=setTimeout(()=>{
+        if(q('#sttInjected'))
+            q('#sttInjected').classList.remove('activeBtExtAnimation');
+        is_recognition_running = false;
+    },5000);
     is_recognition_running = true;
     recognition.lang = settings['lang'];
     recognition.start();
     recognition.onresult = (event)=>{
         if(settings['debug'])
             c.info('recognition.result:', event);
+        clearTimeout(waitListenEnd);
+        waitListenEnd=setTimeout(()=>{
+            if(q('#sttInjected'))
+                q('#sttInjected').classList.remove('activeBtExtAnimation');
+        },2000);
         promptInput.value = ' '+event.results[0][0].transcript;
         promptInput.dispatchEvent(new Event('input',{bubbles:true}));
         promptInput.dispatchEvent(new Event('change',{bubbles:true}));
@@ -136,7 +150,9 @@ function listenUser()
     recognition.onspeechend = () => {
         if(settings['debug'])
             c.info('recognition.end');
+        q('#sttInjected').classList.remove('activeBtExtAnimation')
         recognition.stop();
+        console.info('recognition end');
         is_recognition_running = false;
         setTimeout(()=>q(
                 'svg path[d="M.5 1.163A1 1 0 0 1 1.97.28l12.868 6.837a1 1 0 0 1 0 1.766L1.969 15.72A1 1 0 0 1 .5 14.836V10.33a1 1 0 0 1 .816-.983L8.5 8 1.316 6.653A1 1 0 0 1 .5 5.67V1.163Z"]'
@@ -145,11 +161,13 @@ function listenUser()
         );
     };
     recognition.onnomatch = (event) => {
+        console.info('recognition fail');
         if(settings['debug'])
             c.info('recognition.fail:', event);
         recognition.stop();
         is_recognition_running = false;
     };
+    return false;
 }
 function getSettings(msg)
 {
@@ -209,11 +227,11 @@ function insertTTSButtons(retried=0)
                 </svg>
             </button>`
         );
-        // if(settings['autoread']&&UISection.querySelector('.ttsInjected').parentNode.parentNode.parentNode.querySelector('.ttsInReading'))
-        // {
-        //     lastPlayElement=UISection.querySelector('.ttsInjected');
-        //     swapToStop();
-        // }
+        if(settings['autoread']&&UISection.querySelector('.ttsInjected').parentNode.parentNode.parentNode.querySelector('.ttsInReading'))
+        {
+            lastPlayElement=UISection.querySelector('.ttsInjected');
+            swapToStop();
+        }
         UISection.querySelector('.ttsInjected').addEventListener(
             'click',
             ((UISection)=>(e)=>togglePlay(e,UISection))(UISection)
@@ -242,18 +260,16 @@ function insertGlobalStopButton(retried=0)
         `<div id="ttsGlobalControls" title="Read all of this page">
             <svg
                 alt="stop"
-                stroke="white"
-                fill="white"
-                stroke-width="1"
+                stroke="none"
+                fill="currentColor"
+                stroke-width="0"
                 viewBox="0 0 28 28"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="h-4 w-4 hide"
+                class="h-4 w-4 hide activeBtExtAnimation2"
                 height="1em"
                 width="1em"
                 xmlns="http://www.w3.org/2000/svg"
             >
-                <rect x="4" y="4" width="28" height="28"/>
+                <rect width="28" height="28"/>
             </svg>
             <svg
                 alt="play"
@@ -266,6 +282,7 @@ function insertGlobalStopButton(retried=0)
                 class="h-4 w-4"
                 height="1em"
                 width="1em"
+                style="margin-left:-2px;"
                 xmlns="http://www.w3.org/2000/svg"
             >
                 <polygon points="10,4 10,24 22,14"/>
@@ -291,17 +308,27 @@ function toggleGlobalControl(delegate=false,force_state=null)
         if(delegate) // Triger by invidual button
             return;
         swapToPlay(true); // Reset all individuals buttons, use only global control in this case
+        var txt=page.innerText;
+        const header=page.querySelector('header');
+        if(header)
+            txt=txt.substring(header.innerText.length);
+        txt=txt.trim().replace(/(^\nRegenerate\n.*\n\?$)/m, '');
         browser.runtime.sendMessage({
             query:'readForMe',
-            text:page.innerText
+            text:txt
         });
         return;
     }
     globalControls.setAttribute('title', 'Read all of this page');
     q('#ttsGlobalControls svg[alt="play"]').classList.remove('hide');
     q('#ttsGlobalControls svg[alt="stop"]').classList.add('hide');
-    if(!delegate)
-        browser.runtime.sendMessage({query:'stop'});
+    if(delegate)
+        return;
+    browser.runtime.sendMessage({query:'stop'});
+    if(timers['searchForNewResponseTimer'])
+        clearTimeout(timers['searchForNewResponseTimer']);
+    if(timers['readLiveResponseTimer'])
+        clearTimeout(timers['readLiveResponseTimer']);
 }
 function insertSTTButton(retried=0)
 {
@@ -322,7 +349,7 @@ function insertSTTButton(retried=0)
         'afterEnd',
         `<button
             id="sttInjected"
-            style="right: 2.5rem;top:0.6rem;"
+            style="right: 2.9rem;bottom:0.6rem;height:35px;"
             class="absolute p-1 rounded-md md:bottom-3 md:p-2 md:right-3 dark:hover:bg-gray-900 dark:disabled:hover:bg-transparent right-2 disabled:text-gray-400 text-white bottom-1.5 transition-colors disabled:opacity-40">
             <svg
                 x="0px"
@@ -394,11 +421,12 @@ function readLiveResponse(wrapper)
     let text=wrapper.innerText;
     text=text.substring(readLiveResponseBuffer.length);
     let parts=text.split(/(?<=[\n,.!?])/);
+    toggleGlobalControl(true,'play');
     if(length<2)
     {
         if(settings['debug'])
             c.log('Not enought text for read: ', text);
-        return setTimeout(()=>readLiveResponse(wrapper),100);
+        return timers['readLiveResponseTimer']=setTimeout(()=>readLiveResponse(wrapper),100);
     }
     while(parts.length>1)
     {
@@ -409,7 +437,7 @@ function readLiveResponse(wrapper)
         readLiveResponseBuffer+=msg;
     }
     if(q('button svg rect[x="3"][y="3"][width="18"][height="18"][rx="2"][ry="2"]'))
-        return setTimeout(()=>readLiveResponse(wrapper),100);
+        return timers['readLiveResponseTimer']=setTimeout(()=>readLiveResponse(wrapper),100);
     if(parts.length)
     {
         if(settings['debug'])

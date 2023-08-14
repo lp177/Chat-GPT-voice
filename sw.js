@@ -49,7 +49,8 @@ async function resumeIfSpeaking()
 }
 function readForMe(txt, tab_id, enqueue=false)
 {
-    console.info('Read in ', settings['lang']);
+    if(settings['debug'])
+        console.info('Read in ', settings['lang']);
     browser.tts.speak(
         txt,
         {
@@ -60,7 +61,11 @@ function readForMe(txt, tab_id, enqueue=false)
             {
                 // if(event.type=='start')
                 if(event.type=='end')
-                    browser.tabs.sendMessage(tab_id, {action: 'swapToPlay'});
+                    setTimeout(async ()=>{
+                        let isSpeaking = await browser.tts.isSpeaking();
+                        if(!isSpeaking)
+                            browser.tabs.sendMessage(tab_id, {action: 'swapToPlay'});
+                    },10);
             }
         },
         ()=>{
@@ -132,6 +137,7 @@ browser.storage.local.get(
         var name,value;
         for([name,value] of Object.entries(settingsHydrate(data)))
             settings[name] = value;
-        console.info('Settings:', settings);
+        if(settings['debug'])
+            console.info('Settings:', settings);
     }
 );
