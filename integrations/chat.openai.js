@@ -189,7 +189,7 @@ function insertTTSButtons(retried=0)
     var targets=qa('.text-token-text-primary.dark\\:bg-\\[\\#444654\\] path[d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"]');
     if(!targets||targets.length<1)
     {
-        add_css='margin-bottom:-37px;';
+        add_css='margin-bottom:-5px;';
         targets=qa('.markdown.prose');
     }
     if(settings['debug'])

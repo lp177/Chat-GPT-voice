@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Chat GPT voice",
-    "version": "3.001.1042",
+    "version": "3.001.1043",
     "description": "Make GPT chat talk and talk to it with voice",
     "options_page": "settings.html",
     "permissions": [
