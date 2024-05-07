@@ -297,20 +297,18 @@ function toggleGlobalControl(delegate=false,force_state=null)
     const hidden=globalControls.querySelector('.hide');
     if(force_state!='stop'&&(hidden.getAttribute('alt')==='stop'||force_state=='play'))
     {
-        var page=q('main');
-        if(!page)
-            return debug?c.error('Fail to get page content'):undefined;
+        var messages=qa('main .text-token-text-primary .text-message');
+        if(!messages)
+            return debug?c.error('Fail to get messages content'):undefined;
+        var txt = '';
+        for (let el of messages)
+            txt+=el.innerText;
         q('#ttsGlobalControls svg[alt="stop"]').classList.remove('hide');
         q('#ttsGlobalControls svg[alt="play"]').classList.add('hide');
         globalControls.setAttribute('title', 'Stop');
         if(delegate) // Triger by invidual button
             return;
         swapToPlay(true); // Reset all individuals buttons, use only global control in this case
-        var txt=page.innerText;
-        const header=page.querySelector('header');
-        if(header)
-            txt=txt.substring(header.innerText.length);
-        txt=txt.trim().replace(/(^\nRegenerate\n.*\n\?$)/m, '');
         browser.runtime.sendMessage({
             query:'readForMe',
             text:txt
@@ -339,6 +337,8 @@ function insertSTTButton(retried=0)
                 timers['insertSTTButtonTimer']=null;
                 insertSTTButton(retried+1)
             },300);
+        else
+            console.error("Fail to find prompt input");
         return;
     }
     if(document.querySelector('#sttInjected'))
@@ -379,11 +379,14 @@ function searchForNewResponse(retried=0)
     if(!settings['autoread'])
         return;
     avoidConcurrency(retried,'searchForNewResponseTimer');
-    const stopGenerationBt=q('button svg rect[x="3"][y="3"][width="18"][height="18"][rx="2"][ry="2"]');
-    if(!stopGenerationBt)
+    const streamIndicator=q('.result-streaming');
+    if(!streamIndicator)
     {
         for(let response of qa('.markdown.prose:not(.tssReaded):not(.ttsInReading)'))
+        {
+            console.log("Add readed class to ", responses);
             response.classList.add('tssReaded');
+        }
         if(retried<30)
             timers['searchForNewResponseTimer']=setTimeout(()=>{
                 timers['searchForNewResponseTimer']=null;
@@ -392,7 +395,7 @@ function searchForNewResponse(retried=0)
         return;
     }
     if(settings['debug'])
-        c.info('Stop button detected: ', stopGenerationBt);
+        c.info('Stream indicator detected: ', streamIndicator);
     let responses=qa('.markdown.prose:not(.tssReaded):not(.ttsInReading)');
     if(!responses||!responses.length)
     {
@@ -420,7 +423,7 @@ function readLiveResponse(wrapper)
     text=text.substring(readLiveResponseBuffer.length);
     let parts=text.split(/(?<=[\n,.!?])/);
     toggleGlobalControl(true,'play');
-    if(length<2)
+    if(text.length<2)
     {
         if(settings['debug'])
             c.log('Not enought text for read: ', text);
@@ -434,7 +437,7 @@ function readLiveResponse(wrapper)
         playEnqueue(msg);
         readLiveResponseBuffer+=msg;
     }
-    if(q('button svg rect[x="3"][y="3"][width="18"][height="18"][rx="2"][ry="2"]'))
+    if(q('.result-streaming'))
         return timers['readLiveResponseTimer']=setTimeout(()=>readLiveResponse(wrapper),100);
     if(parts.length)
     {

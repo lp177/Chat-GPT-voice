@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Chat GPT voice",
-    "version": "3.001.1028",
+    "version": "3.001.1042",
     "description": "Make GPT chat talk and talk to it with voice",
     "options_page": "settings.html",
     "permissions": [
@@ -28,7 +28,8 @@
             "all_frames": false,
             "run_at": "document_end",
             "matches": [
-                "https://chat.openai.com/*"
+                "https://chat.openai.com/*",
+                "https://chatgpt.com/*"
             ],
             "js": [
                 "integrations/chat.openai.js"
